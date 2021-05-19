@@ -21,6 +21,7 @@ public class FileHandler {
 	 */
 	public static void writeList(LinkedList<HighScore> list, String fileLocation) {
 		synchronized(list) {
+			boolean wrote = false;
 			File file = new File(fileLocation);
 			try {
 				if (!file.exists()) {
@@ -30,8 +31,27 @@ public class FileHandler {
 				objOut.writeObject(list);
 				objOut.flush();
 				objOut.close();
+				wrote = true;
+				return;
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.err.println("writting to secondary file location");
+				wrote = false;
+			}
+			if (!wrote) {
+				File file2 = new File("Assets/highScores.bin");
+				try {
+					if (!file2.exists()) {
+						file2.createNewFile();
+					}
+					ObjectOutputStream objOut2 = new ObjectOutputStream(new FileOutputStream(file2));
+					objOut2.writeObject(list);
+					objOut2.flush();
+					objOut2.close();
+					System.err.println("High scores saved in secondary file location. Not Recommended");
+					System.err.println("Please add Assets/HighScoresFolder/ folder to your directories");
+				} catch (IOException e) {
+					System.err.println("could not write highScores to file");
+				}
 			}
 		}
 	}
@@ -49,6 +69,19 @@ public class FileHandler {
 				ObjectInputStream objIn = new ObjectInputStream(new FileInputStream(file));
 				list = (LinkedList<HighScore>) objIn.readObject();
 				objIn.close();
+				return list;
+			} catch (IOException | ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		File file2 = new File("Assets/highScores.bin");
+		if (file2.exists()) {
+			try {
+				ObjectInputStream objIn2 = new ObjectInputStream(new FileInputStream(file2));
+				list = (LinkedList<HighScore>) objIn2.readObject();
+				objIn2.close();
+				System.err.println("High scores saved in secondary file location. Not Recommended");
+				System.err.println("Please add Assets/HighScoresFolder/ folder to your directories");
 				return list;
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
